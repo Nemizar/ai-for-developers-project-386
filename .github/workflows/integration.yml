@@ -1,0 +1,80 @@
+name: integration
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+
+jobs:
+  backend-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache: true
+
+      - name: Run backend tests
+        run: go test ./...
+
+  frontend-api-smoke:
+    runs-on: ubuntu-latest
+    needs: backend-tests
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache: true
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend deps
+        run: npm ci
+        working-directory: frontend
+
+      - name: Start backend
+        run: go run ./cmd/server > /tmp/backend.log 2>&1 &
+        working-directory: backend
+
+      - name: Wait for backend
+        run: |
+          for i in {1..40}; do
+            if curl -sSf http://127.0.0.1:4010/public/event-types >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Backend did not start in time"
+          cat /tmp/backend.log
+          exit 1
+
+      - name: Run API smoke
+        run: npm run smoke:api
+        working-directory: frontend
+        env:
+          SMOKE_API_BASE_URL: http://127.0.0.1:4010
+
+      - name: Run booking flow smoke
+        run: npm run smoke:booking
+        working-directory: frontend
+        env:
+          SMOKE_API_BASE_URL: http://127.0.0.1:4010
+
+      - name: Print backend log on failure
+        if: failure()
+        run: cat /tmp/backend.log
