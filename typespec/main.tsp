@@ -3,7 +3,7 @@ import "@typespec/openapi3";
 
 using TypeSpec.Http;
 
-@service({ title: "Calls Calendar API" })
+@service(#{ title: "Calls Calendar API" })
 @server("https://api.example.com", "Production")
 namespace CallsCalendar;
 
@@ -136,6 +136,3 @@ interface PublicApi {
   @route("/public/bookings")
   createBooking(@body input: CreateBookingRequest): Booking | NotFoundError | ValidationError | ConflictError;
 }
-
-@doc("All interfaces in a single API contract.")
-interface CalendarApi extends AdminApi, PublicApi {}

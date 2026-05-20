@@ -1,0 +1,15 @@
+{
+  "name": "calls-calendar-typespec",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsp compile ./main.tsp --emit @typespec/openapi3",
+    "build:watch": "tsp compile ./main.tsp --emit @typespec/openapi3 --watch"
+  },
+  "devDependencies": {
+    "@typespec/compiler": "^1.5.0",
+    "@typespec/http": "^1.5.0",
+    "@typespec/openapi3": "^1.5.0"
+  }
+}
