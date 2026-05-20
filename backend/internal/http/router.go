@@ -21,6 +21,10 @@ func NewRouter(admin *AdminHandlers, public *PublicHandlers) http.Handler {
 		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type"},
 	}))
 
+	r.Get("/", func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
 	r.Route("/admin", func(ar chi.Router) {
 		ar.Get("/owner", admin.GetOwnerProfile)
 		ar.Get("/event-types", admin.ListEventTypes)
